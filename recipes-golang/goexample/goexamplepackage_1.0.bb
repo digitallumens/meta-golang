@@ -10,3 +10,4 @@ SRCREV = "862e985df07eb4703b9a972019d3ebc17a345748"
 
 S := "${WORKDIR}/src"
 
+GO_LIB_NAME = "${PN}"

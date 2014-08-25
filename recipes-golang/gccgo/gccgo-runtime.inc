@@ -62,7 +62,7 @@ do_install () {
 INHIBIT_DEFAULT_DEPS = "1"
 DEPENDS = "virtual/${TARGET_PREFIX}gcc virtual/${TARGET_PREFIX}g++ libgcc"
 PROVIDES = "virtual/${TARGET_PREFIX}golibs"
-#RPROVIDES_${PN} = "virtual/${TARGET_PREFIX}golibs"
+RPROVIDES_libgo = "virtual/${TARGET_PREFIX}golibs"
 
 BBCLASSEXTEND = "nativesdk"
 
@@ -71,6 +71,9 @@ PACKAGES = "\
   libgo \
   libgo-dev \
   libgo-staticdev \
+  libffi \
+  libffi-dev \
+  libffi-staticdev \
 "
 # The base package doesn't exist, so we clear the recommends.
 RRECOMMENDS_${PN}-dbg = ""
@@ -94,7 +97,7 @@ FILES_libffi-dev = "\
   ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/ffi.h \
   ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/ffitarget.h \
   "
-FILES_libgo-staticdev = "${libdir}/libffi.a"
+FILES_libffi-staticdev = "${libdir}/libffi.a"
 
 do_package_write_ipk[depends] += "virtual/${MLPREFIX}libc:do_packagedata"
 do_package_write_deb[depends] += "virtual/${MLPREFIX}libc:do_packagedata"

@@ -1,5 +1,5 @@
-#RDEPENDS_${PN} = "virtual/${TARGET_PREFIX}golibs"
-#DEPENDS = "virtual/${TARGET_PREFIX}golang virtual/${TARGET_PREFIX}golibs"
+RDEPENDS_${PN} += "virtual/${TARGET_PREFIX}golibs"
+DEPENDS += "virtual/${TARGET_PREFIX}golang virtual/${TARGET_PREFIX}golibs"
 
 GO_LIB_VERSION = "${PV}"
 python __anonymous () {
@@ -307,6 +307,7 @@ base_do_compile() {
 }
 
 do_install () {
+    echo "${FILES_${PN}-dbg}"
     cd ${S}
     export INCLUDE_DIR="${D}${includedir}"
     export LIB_DIR="${D}${libdir}"
@@ -318,9 +319,236 @@ do_install () {
     fi
 }
 
+#Keep debugging symbols in main package for go
+#FILES_${PN} += "${bindir}/.debug"
 FILES_${PN}-dev += "${libdir}/${GO_PACKAGE_NAME}*"
-FILES_${PN}-dbg += " \
+FILES_${PN}-dbg = " \
     ${libdir}/*/.debug ${libdir}/*/*/.debug \
     ${libdir}/*/*/*/.debug ${libdir}/*/*/*/*/.debug \
-    ${libdir}/.debug"
-#    ${sourcedir} ${bindir}/.debug"
+    ${libdir}/.debug /usr/src/debug"
+
+#Override the default split_and_strip_files. GCCGO excutable files require debug symbols.
+
+python split_and_strip_files () {
+    import stat, errno
+
+    dvar = d.getVar('PKGD', True)
+    pn = d.getVar('PN', True)
+
+    # We default to '.debug' style
+    if d.getVar('PACKAGE_DEBUG_SPLIT_STYLE', True) == 'debug-file-directory':
+        # Single debug-file-directory style debug info
+        debugappend = ".debug"
+        debugdir = ""
+        debuglibdir = "/usr/lib/debug"
+        debugsrcdir = "/usr/src/debug"
+    elif d.getVar('PACKAGE_DEBUG_SPLIT_STYLE', True) == 'debug-without-src':
+        # Original OE-core, a.k.a. ".debug", style debug info, but without sources in /usr/src/debug
+        debugappend = ""
+        debugdir = "/.debug"
+        debuglibdir = ""
+        debugsrcdir = ""
+    else:
+        # Original OE-core, a.k.a. ".debug", style debug info
+        debugappend = ""
+        debugdir = "/.debug"
+        debuglibdir = ""
+        debugsrcdir = "/usr/src/debug"
+
+    sourcefile = d.expand("${WORKDIR}/debugsources.list")
+    bb.utils.remove(sourcefile)
+
+    os.chdir(dvar)
+
+    # Return type (bits):
+    # 0 - not elf
+    # 1 - ELF
+    # 2 - stripped
+    # 4 - executable
+    # 8 - shared library
+    # 16 - kernel module
+    def isELF(path):
+        type = 0
+        ret, result = oe.utils.getstatusoutput("file \"%s\"" % path.replace("\"", "\\\""))
+
+        if ret:
+            msg = "split_and_strip_files: 'file %s' failed" % path
+            package_qa_handle_error("split-strip", msg, d)
+            return type
+
+        # Not stripped
+        if "ELF" in result:
+            type |= 1
+            if "not stripped" not in result:
+                type |= 2
+            if "executable" in result:
+                type |= 4
+            if "shared" in result:
+                type |= 8
+        return type
+
+
+    #
+    # First lets figure out all of the files we may have to process ... do this only once!
+    #
+    elffiles = {}
+    symlinks = {}
+    hardlinks = {}
+    kernmods = []
+    libdir = os.path.abspath(dvar + os.sep + d.getVar("libdir", True))
+    baselibdir = os.path.abspath(dvar + os.sep + d.getVar("base_libdir", True))
+    if (d.getVar('INHIBIT_PACKAGE_STRIP', True) != '1'):
+        for root, dirs, files in cpath.walk(dvar):
+            for f in files:
+                file = os.path.join(root, f)
+                if file.endswith(".ko") and file.find("/lib/modules/") != -1:
+                    kernmods.append(file)
+                    continue
+
+                # Skip debug files
+                if debugappend and file.endswith(debugappend):
+                    continue
+                if debugdir and debugdir in os.path.dirname(file[len(dvar):]):
+                    continue
+
+                # Skip go bin files
+                if root.endswith("bin"):
+                    continue
+
+                try:
+                    ltarget = cpath.realpath(file, dvar, False)
+                    s = cpath.lstat(ltarget)
+                except OSError as e:
+                    (err, strerror) = e.args
+                    if err != errno.ENOENT:
+                        raise
+                    # Skip broken symlinks
+                    continue
+                if not s:
+                    continue
+                # Check its an excutable
+                if (s[stat.ST_MODE] & stat.S_IXUSR) or (s[stat.ST_MODE] & stat.S_IXGRP) or (s[stat.ST_MODE] & stat.S_IXOTH) \
+                        or ((file.startswith(libdir) or file.startswith(baselibdir)) and ".so" in f):
+                    # If it's a symlink, and points to an ELF file, we capture the readlink target
+                    if cpath.islink(file):
+                        target = os.readlink(file)
+                        if isELF(ltarget):
+                            #bb.note("Sym: %s (%d)" % (ltarget, isELF(ltarget)))
+                            symlinks[file] = target
+                        continue
+                    # It's a file (or hardlink), not a link
+                    # ...but is it ELF, and is it already stripped?
+                    elf_file = isELF(file)
+                    if elf_file & 1:
+                        if elf_file & 2:
+                            if 'already-stripped' in (d.getVar('INSANE_SKIP_' + pn, True) or "").split():
+                                bb.note("Skipping file %s from %s for already-stripped QA test" % (file[len(dvar):], pn))
+                            else:
+                                msg = "File '%s' from %s was already stripped, this will prevent future debugging!" % (file[len(dvar):], pn)
+                                package_qa_handle_error("already-stripped", msg, d)
+                            continue
+                        # Check if it's a hard link to something else
+                        if s.st_nlink > 1:
+                            file_reference = "%d_%d" % (s.st_dev, s.st_ino)
+                            # Hard link to something else
+                            hardlinks[file] = file_reference
+                            continue
+                        elffiles[file] = elf_file
+
+    #
+    # First lets process debug splitting
+    #
+    if (d.getVar('INHIBIT_PACKAGE_DEBUG_SPLIT', True) != '1'):
+        hardlinkmap = {}
+        # For hardlinks, process only one of the files
+        for file in hardlinks:
+            file_reference = hardlinks[file]
+            if file_reference not in hardlinkmap:
+                # If this is a new file, add it as a reference, and
+                # update it's type, so we can fall through and split
+                elffiles[file] = isELF(file)
+                hardlinkmap[file_reference] = file
+
+        for file in elffiles:
+            src = file[len(dvar):]
+            dest = debuglibdir + os.path.dirname(src) + debugdir + "/" + os.path.basename(src) + debugappend
+            fpath = dvar + dest
+
+            # Split the file...
+            bb.utils.mkdirhier(os.path.dirname(fpath))
+            #bb.note("Split %s -> %s" % (file, fpath))
+            # Only store off the hard link reference if we successfully split!
+            splitdebuginfo(file, fpath, debugsrcdir, sourcefile, d)
+
+        # Hardlink our debug symbols to the other hardlink copies
+        for file in hardlinks:
+            if file not in elffiles:
+                src = file[len(dvar):]
+                dest = debuglibdir + os.path.dirname(src) + debugdir + "/" + os.path.basename(src) + debugappend
+                fpath = dvar + dest
+                file_reference = hardlinks[file]
+                target = hardlinkmap[file_reference][len(dvar):]
+                ftarget = dvar + debuglibdir + os.path.dirname(target) + debugdir + "/" + os.path.basename(target) + debugappend
+                bb.utils.mkdirhier(os.path.dirname(fpath))
+                #bb.note("Link %s -> %s" % (fpath, ftarget))
+                os.link(ftarget, fpath)
+
+        # Create symlinks for all cases we were able to split symbols
+        for file in symlinks:
+            src = file[len(dvar):]
+            dest = debuglibdir + os.path.dirname(src) + debugdir + "/" + os.path.basename(src) + debugappend
+            fpath = dvar + dest
+            # Skip it if the target doesn't exist
+            try:
+                s = os.stat(fpath)
+            except OSError as e:
+                (err, strerror) = e.args
+                if err != errno.ENOENT:
+                    raise
+                continue
+
+            ltarget = symlinks[file]
+            lpath = os.path.dirname(ltarget)
+            lbase = os.path.basename(ltarget)
+            ftarget = ""
+            if lpath and lpath != ".":
+                ftarget += lpath + debugdir + "/"
+            ftarget += lbase + debugappend
+            if lpath.startswith(".."):
+                ftarget = os.path.join("..", ftarget)
+            bb.utils.mkdirhier(os.path.dirname(fpath))
+            #bb.note("Symlink %s -> %s" % (fpath, ftarget))
+            os.symlink(ftarget, fpath)
+
+        # Process the debugsrcdir if requested...
+        # This copies and places the referenced sources for later debugging...
+        copydebugsources(debugsrcdir, d)
+    #
+    # End of debug splitting
+    #
+
+    #
+    # Now lets go back over things and strip them
+    #
+    if (d.getVar('INHIBIT_PACKAGE_STRIP', True) != '1'):
+        strip = d.getVar("STRIP", True)
+        sfiles = []
+        for file in elffiles:
+            elf_file = int(elffiles[file])
+            #bb.note("Strip %s" % file)
+            sfiles.append((file, elf_file, strip))
+        for f in kernmods:
+            sfiles.append((f, 16, strip))
+
+
+        import multiprocessing
+        nproc = multiprocessing.cpu_count()
+        pool = bb.utils.multiprocessingpool(nproc)
+        processed = list(pool.imap(oe.package.runstrip, sfiles))
+        pool.close()
+        pool.join()
+
+    #
+    # End of strip
+    #
+}

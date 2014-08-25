@@ -318,7 +318,7 @@ do_install () {
     fi
 }
 
-FILES_${PN}-dev = "${libdir}"
+FILES_${PN}-dev += "${libdir}/${GO_PACKAGE_NAME}*"
 FILES_${PN}-dbg += " \
     ${libdir}/*/.debug ${libdir}/*/*/.debug \
     ${libdir}/*/*/*/.debug ${libdir}/*/*/*/*/.debug \

@@ -14,4 +14,4 @@ GO_EXEC_NAME = "${PN}"
 GO_LINKER = "-lgoexamplepackage"
 
 DEPENDS = "goexamplepackage"
-RDEPENDS_${PN} = "goexamplepackage"
+RDEPENDS_${PN} += "goexamplepackage"

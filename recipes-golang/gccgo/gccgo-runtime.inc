@@ -60,7 +60,7 @@ do_install () {
 }
 
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "virtual/${TARGET_PREFIX}gcc virtual/${TARGET_PREFIX}g++ libgcc"
+DEPENDS = "virtual/${TARGET_PREFIX}gcc virtual/${TARGET_PREFIX}g++ libgcc virtual/${TARGET_PREFIX}gccgo"
 PROVIDES = "virtual/${TARGET_PREFIX}golibs"
 RPROVIDES_libgo = "virtual/${TARGET_PREFIX}golibs"
 

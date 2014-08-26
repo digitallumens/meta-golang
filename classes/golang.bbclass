@@ -8,6 +8,7 @@ python __anonymous () {
 
 B = "${WORKDIR}/build"
 
+CGO_ENABLED ?= "1"
 PARALLEL_MAKE = ""
 
 GCCGO = "${TARGET_PREFIX}gccgo"
@@ -300,6 +301,9 @@ python do_configure () {
 base_do_compile() {
     export GCCGO="${GCCGO}"
     export OBJCOPY="${OBJCOPY}"
+    export GOOS="linux"
+    export GOARCH="${TARGET_ARCH}"
+    export CGOENABLED="${CGO_ENABLED}"
     cd ${S}
     if [ -e Makefile -o -e makefile -o -e GNUmakefile ]; then
         oe_runmake || die "make failed"

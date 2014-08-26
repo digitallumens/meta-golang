@@ -71,9 +71,9 @@ PACKAGES = "\
   libgo \
   libgo-dev \
   libgo-staticdev \
-  libffi \
-  libffi-dev \
-  libffi-staticdev \
+  libffigo \
+  libffigo-dev \
+  libffigo-staticdev \
 "
 # The base package doesn't exist, so we clear the recommends.
 RRECOMMENDS_${PN}-dbg = ""
@@ -90,14 +90,14 @@ FILES_libgo-staticdev = "\
   ${libdir}/libgobegin.a \
   "
 
-FILES_libffi = "${libdir}/libffi.so.*"
-FILES_libffi-dev = "\
+FILES_libffigo = "${libdir}/libffi.so.*"
+FILES_libffigo-dev = "\
   ${libdir}/libffi.so \
   ${libdir}/libffi.la \
   ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/ffi.h \
   ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/ffitarget.h \
   "
-FILES_libffi-staticdev = "${libdir}/libffi.a"
+FILES_libffigo-staticdev = "${libdir}/libffi.a"
 
 do_package_write_ipk[depends] += "virtual/${MLPREFIX}libc:do_packagedata"
 do_package_write_deb[depends] += "virtual/${MLPREFIX}libc:do_packagedata"

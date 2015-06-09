@@ -6,7 +6,6 @@ SRC_URI = "http://golang.org/dl/go${PV}.src.tar.gz"
 S="${WORKDIR}/go"
 
 do_compile () {
-	export CC="${BUILD_CC}"
 	export GOROOT_FINAL="${libdir}/go"
 	export GOARCH="${TARGET_ARCH}"
 	if [ "${TARGET_ARCH}" = "arm" ]
@@ -19,6 +18,7 @@ do_compile () {
 	fi
 	export GOOS="linux"
 	export CGO_ENABLED="1"
+	export CC="${BUILD_CC}"
 	export CC_FOR_TARGET="${TARGET_SYS}-gcc --sysroot=${STAGING_DIR_TARGET} ${TARGET_CC_ARCH}"
 	export CXX_FOR_TARGET="${TARGET_SYS}-g++ --sysroot=${STAGING_DIR_TARGET} ${TARGET_CC_ARCH}"
 	cd src

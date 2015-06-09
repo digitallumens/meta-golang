@@ -12,7 +12,6 @@ do_compile () {
 	then
 		if [ `echo ${TUNE_PKGARCH} | cut -c 1-7` = "cortexa" ]
 		then
-			echo GOARM 7
 			export GOARM="7"
 		fi
 	fi
@@ -22,8 +21,6 @@ do_compile () {
 	export CC_FOR_TARGET="${TARGET_SYS}-gcc --sysroot=${STAGING_DIR_TARGET} ${TARGET_CC_ARCH}"
 	export CXX_FOR_TARGET="${TARGET_SYS}-g++ --sysroot=${STAGING_DIR_TARGET} ${TARGET_CC_ARCH}"
 	cd src
-	echo GOARCH ${GOARCH}
-	echo CC_FOR_TARGET ${CC_FOR_TARGET}
 	./make.bash
 }
 

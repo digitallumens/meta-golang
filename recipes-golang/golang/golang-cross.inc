@@ -22,8 +22,8 @@ do_compile () {
 	export GO_LDFLAGS=""
 	export GO_CCFLAGS=""
 	export CGO_ENABLED="1"
-	export CC_FOR_TARGET="${TARGET_SYS}-gcc"
-	export CXX_FOR_TARGET="${TARGET_SYS}-g++"
+	export CC_FOR_TARGET="${TARGET_SYS}-gcc --sysroot=${STAGING_DIR_TARGET} ${TARGET_CC_ARCH}"
+	export CXX_FOR_TARGET="${TARGET_SYS}-g++ --sysroot=${STAGING_DIR_TARGET} ${TARGET_CC_ARCH}"
 	cd src
 	echo GOARCH ${GOARCH}
 	echo CC_FOR_TARGET ${CC_FOR_TARGET}

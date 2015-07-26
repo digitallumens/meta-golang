@@ -1,6 +1,6 @@
 DESCRIPTION = "Go Programming Language Cross Compiler."
 HOMEPAGE = "golang.org"
-DEPENDS = "virtual/${TARGET_PREFIX}gcc"
+DEPENDS = "libgcc"
 PROVIDES = "virtual/${TARGET_PREFIX}golang"
 SRC_URI = "http://golang.org/dl/go${PV}.src.tar.gz"
 S="${WORKDIR}/go"

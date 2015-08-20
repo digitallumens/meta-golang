@@ -1,4 +1,4 @@
-RDEPENDS_${PN} += "virtual/${TARGET_PREFIX}golibs"
+RDEPENDS_${PN} += "virtual/${TARGET_PREFIX}golibs libffigo"
 DEPENDS += "virtual/${TARGET_PREFIX}golang virtual/${TARGET_PREFIX}golibs"
 
 GO_LIB_VERSION = "${PV}"
@@ -209,7 +209,10 @@ def get_package_env(pkg):
                   '{"GoFiles" : [{{range .GoFiles}} "{{.}}", {{end}}], "CgoFiles" : [{{range .CgoFiles}} "{{.}}", {{end}}], "CFiles" : [{{range .CFiles}} "{{.}}", {{end}}], "CgoCFLAGS" : [{{range .CgoCFLAGS}} "{{.}}", {{end}}], "CgoLDFLAGS" : [{{range .CgoLDFLAGS}} "{{.}}", {{end}}], "Imports" : [{{range .Imports}} "{{.}}", {{end}}], "Name" : "{{.Name}}"}',
                   pkg], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=go_env)
     out, err = proc.communicate()
-    return eval(out)
+    env = eval(out)
+    if env['Name'] != 'main':
+        env['Name'] = pkg.split(os.sep)[-1]
+    return env
 
 #Get the package name for a directory
 def get_package_name(d):
@@ -291,7 +294,11 @@ python do_configure () {
     version = d.getVar("GO_LIB_VERSION", True)
     version_major = d.getVar("GO_LIB_VERSION_MAJOR", True)
     linker_flags = d.getVar("GO_LINKER", True)
-    exec_names = d.getVar("GO_EXEC_NAME", True).split()
+    exec_names = d.getVar("GO_EXEC_NAME", True)
+    if exec_names:
+        exec_names = exec_names.split(' ')
+    else:
+        exec_names = []
     makefile = gen_makefile(s, b, base_name, so_name, exec_names, version, version_major, linker_flags)
     with open(s+os.sep+"Makefile", "w") as f:
         f.write(makefile)

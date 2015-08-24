@@ -1,4 +1,4 @@
-RDEPENDS_${PN} += "virtual/${TARGET_PREFIX}golibs libffigo"
+RDEPENDS_${PN} += "virtual/${TARGET_PREFIX}golibs libffi"
 DEPENDS += "virtual/${TARGET_PREFIX}golang virtual/${TARGET_PREFIX}golibs"
 
 GO_LIB_VERSION = "${PV}"
@@ -11,7 +11,7 @@ B = "${WORKDIR}/build"
 CGO_ENABLED ?= "1"
 PARALLEL_MAKE = ""
 
-GCCGO = "${TARGET_PREFIX}gccgo"
+GCCGO = "${TARGET_PREFIX}gccgo ${TARGET_CC_ARCH} --sysroot=${STAGING_DIR_TARGET}"
 OBJCOPY = "${TARGET_PREFIX}objcopy"
 
 #Makefile: the executable (statically linked with this library)
@@ -129,9 +129,9 @@ def make_go_o_file(pkg_name, pkg, dest, base_name):
         if i.startswith(base_name):
             dep += " %s%s%s.o" % (dest, os.sep,i)
     if pkg['Name']=='main':
-        cmd = "\t$(GCCGO) $(CFLAGS) $(LDFLAGS) -fPIC -I%s -c -o $@ %s" % (dest, build)
+        cmd = "\t$(GCCGO) $(CFLAGS) $(LDFLAGS) -fPIC -I$(GO_LIB_DIR) -I%s -c -o $@ %s" % (dest, build)
     else:
-        cmd = "\t$(GCCGO) $(CFLAGS) $(LDFLAGS) -fPIC -fgo-pkgpath=%s -I/usr/include -I%s -c -o $@ %s" % (pkg_name, dest, build)
+        cmd = "\t$(GCCGO) $(CFLAGS) $(LDFLAGS) -fPIC -fgo-pkgpath=%s -I$(GO_LIB_DIR) -I%s -c -o $@ %s" % (pkg_name, dest, build)
     #Make containing dir if needed
     depdir = dest+os.sep+pkg_name[0:-(len(pkg['Name'])+1)]
     cmddir = "\tmkdir -p "+depdir
@@ -311,6 +311,9 @@ base_do_compile() {
     export GOOS="linux"
     export GOARCH="${TARGET_ARCH}"
     export CGOENABLED="${CGO_ENABLED}"
+    export GCCGO_VERSION=`${GCCGO} -dumpversion`
+    export GCCGO_MACHINE=`${GCCGO} -dumpmachine`
+    export GO_LIB_DIR="${STAGING_DIR_TARGET}/usr/lib/go/$GCCGO_VERSION/$GCCGO_MACHINE"
     cd ${S}
     if [ -e Makefile -o -e makefile -o -e GNUmakefile ]; then
         oe_runmake || die "make failed"

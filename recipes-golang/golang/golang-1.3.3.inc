@@ -1,4 +1,0 @@
-LICENSE = "BSD"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=591778525c869cdde0ab5a1bf283cd81"
-SRC_URI[md5sum] = "2cdbad6baefcf1007f3cf54a5bc878b7"
-SRC_URI[sha256sum] = "1bb6fde89cfe8b9756a875af55d994cce0994861227b5dc0f268c143d91cd5ff"

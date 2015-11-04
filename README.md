@@ -2,24 +2,34 @@
 
 This layer adds a go support to the OpenEmbedded/Yocto build system.
 
+Go Compiler versions:
+* Go1.5 via native GC
+* Go1.2 via GCCGO from GCC-4.9
+
 It supports the following features:
+* Build GC compiler for native system
+* Build golang static runtime packages for target system
+* Class for Go package static libraries and Go executables using GC
+* GC Static Linking
 * Build target GCCGo cross-compiler for host system
 * Build target GCCGo runtime packages for installation
-* Build target GC cross-compilter for host system
 * Class for Go package dynamic libraries and Go executables using GCCGO
 * CGO support for C files in GCCGO packages
-* Dynamic Linking
+* GCCGO Dynamic Linking
 * Strips executables but works around debug-symbol issue in GCCGO
 
 Unimplemented features:
-* Building recipes with the GC compiler
-* CGO support for languages other than C
+* CGO support in GCCGO packages (Was broken with Go1.5)
+* Building recipes with the GCCGO compiler
 * Static GCCGO Libraries
 * Dynamic libraries that link against other dynamic libraries (Next feature)
 
-# Making a Golang recipe
+# Making a GC Golang recipe
+The golang.bbclass will automatically parse
 
-The golang.bbclass attempts to handle converting Go source workspaces
+# Making a GCCGO Golang recipe
+
+The gccgo.bbclass attempts to handle converting Go source workspaces
 into a Yocto compatible dynamicly linked environment.
 
 All the source must meet the Go workspace formatting requirements:
@@ -33,7 +43,7 @@ All the source must meet the Go workspace formatting requirements:
 No matter what type of recipe that you want to make, you need to do
 the following.
 
-    inherit golang
+    inherit gccgo
 
 This makes the recipe use the golang.bbclass
 

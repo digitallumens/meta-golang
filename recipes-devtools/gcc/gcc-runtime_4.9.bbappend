@@ -1,7 +1,7 @@
 LANGUAGES := "${LANGUAGES},go"
 RUNTIMETARGET += "libbacktrace libffi libgo"
 
-DEPENDS  += "virtual/${TARGET_PREFIX}gccgo"
+DEPENDS_append_class-target = " virtual/${TARGET_PREFIX}gccgo"
 PROVIDES += "virtual/${TARGET_PREFIX}golibs"
 RPROVIDES_libgo = "virtual/${TARGET_PREFIX}golibs"
 

@@ -2,6 +2,7 @@ DEPENDS += "golang"
 INHIBIT_PACKAGE_STRIP = "1"
 
 S="${WORKDIR}"
+GO_PACKAGES = ""
 
 #Compile & Install
 def install(pkgs, go_env):
@@ -62,13 +63,19 @@ python do_compile() {
     go_env["CGO_LDFLAGS"] = "--sysroot="+sysroot_target+" "+target_cc_arch
     go_env["CGO_ENABLED"] = "1"
 
-    pkgs = get_packages(d.getVar("S",True), go_env)
+    pkgs = d.getVar("GO_PACKAGES", True).split()
+
+    if len(pkgs)==0:
+        pkgs = get_packages(d.getVar("S",True), go_env)
+
     install(pkgs, go_env)
 }
 
 do_install() {
-    mkdir -p ${D}${bindir}
-    cp -a ${WORKDIR}/bin/* ${D}${bindir}
+    if [ -d ${WORKDIR}/bin ] ; then
+        mkdir -p ${D}${bindir}
+        cp -a ${WORKDIR}/bin/* ${D}${bindir}
+    fi
     mkdir -p ${D}${libdir}/go
     mkdir -p ${D}${libdir}/go/src
     cd ${WORKDIR}/src

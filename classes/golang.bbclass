@@ -48,7 +48,6 @@ python do_compile() {
     go_env = os.environ.copy()
     go_env["GO"] = sysroot_native+d.getVar("bindir",True)+"/go"
     print "go: "+go_env["GO"]
-    go_env["GOROOT"] = sysroot_native+d.getVar("libdir",True)+"/go"
     go_env["GOPATH"] = d.getVar("WORKDIR",True)+":"+sysroot_target+d.getVar("libdir", True)+"/go"
     go_env["GOARCH"] = d.getVar("TARGET_ARCH",True)
     if d.getVar("TARGET_ARCH",True) == "arm":

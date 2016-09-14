@@ -3,7 +3,7 @@
 This layer adds a go support to the OpenEmbedded/Yocto build system.
 
 Go Compiler versions:
-* Go1.5 via native GC
+* Go1.7 via native GC
 
 It supports the following features:
 * Build GC compiler for native system

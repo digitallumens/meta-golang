@@ -72,13 +72,13 @@ python do_compile() {
 
 do_install() {
     if [ -d ${WORKDIR}/bin ] ; then
-        mkdir -p ${D}${bindir}
-        cp -a ${WORKDIR}/bin/* ${D}${bindir}
+	install -d ${D}${bindir}
+	install -o root -g root ${WORKDIR}/bin/linux_${TARGET_ARCH}/* ${D}${bindir}
     fi
-    mkdir -p ${D}${libdir}/go
-    mkdir -p ${D}${libdir}/go/src
+    install -d ${D}${libdir}/go
+    install -d ${D}${libdir}/go/src
     cd ${WORKDIR}/src
-    find . -regex '.*\(go\|h\|c\)$' -exec cp --parents \{\} ${D}${libdir}/go/src/ \;
+    find . -regex '.*\(go\|h\|c\)$' -exec install -D -o root -g root \{\} ${D}${libdir}/go/src/\{\} \;
     cp -r ${WORKDIR}/pkg ${D}${libdir}/go/
 }
 

@@ -2,14 +2,14 @@ diff --git a/src/syscall/exec_linux.go b/src/syscall/exec_linux.go
 index 39764f7..b0cad52 100644
 --- a/src/syscall/exec_linux.go
 +++ b/src/syscall/exec_linux.go
-@@ -214,7 +214,7 @@
-   	  // and disabled setgroups, because otherwise unprivileged user namespace
- 	     // will fail with any non-empty SysProcAttr.Credential.
- 	     	if !(sys.GidMappings != nil && !sys.GidMappingsEnableSetgroups && ngroups == 0) {
--		   		     _, _, err1 = RawSyscall(SYS_SETGROUPS, ngroups, groups, 0)
-+				     	   _, _, err1 = RawSyscall(_SYS_setgroups, ngroups, groups, 0)
- 					      	 if err1 != 0 {
- 						    	    goto childerror
+@@ -214,6 +214,6 @@
+   	  	// and disabled setgroups, because otherwise unprivileged user namespace
+ 		// will fail with any non-empty SysProcAttr.Credential.
+ 		if !(sys.GidMappings != nil && !sys.GidMappingsEnableSetgroups && ngroups == 0) {
+-			_, _, err1 = RawSyscall(SYS_SETGROUPS, ngroups, groups, 0)
++			_, _, err1 = RawSyscall(_SYS_setgroups, ngroups, groups, 0)
+ 			if err1 != 0 {
+ 				goto childerror
 									}
 diff --git a/src/syscall/syscall_linux_386.go b/src/syscall/syscall_linux_386.go
 index c8339e9..00cf262 100644
@@ -19,11 +19,11 @@ index c8339e9..00cf262 100644
  import "unsafe"
  
  const (
--      _SYS_dup      = SYS_DUP2
--      _SYS_getdents = SYS_GETDENTS64
-+      _SYS_dup       = SYS_DUP2
-+      _SYS_getdents  = SYS_GETDENTS64
-+      _SYS_setgroups = SYS_SETGROUPS32
+-	_SYS_dup      = SYS_DUP2
+-	_SYS_getdents = SYS_GETDENTS64
++	_SYS_dup       = SYS_DUP2
++	_SYS_getdents  = SYS_GETDENTS64
++	_SYS_setgroups = SYS_SETGROUPS32
  )
  
  func setTimespec(sec, nsec int64) Timespec {
@@ -35,11 +35,11 @@ index 684bd9c..0184d7d 100644
  package syscall
  
  const (
--      _SYS_dup      = SYS_DUP2
--      _SYS_getdents = SYS_GETDENTS64
-+      _SYS_dup       = SYS_DUP2
-+      _SYS_getdents  = SYS_GETDENTS64
-+      _SYS_setgroups = SYS_SETGROUPS
+-	_SYS_dup      = SYS_DUP2
+-	_SYS_getdents = SYS_GETDENTS64
++	_SYS_dup       = SYS_DUP2
++	_SYS_getdents  = SYS_GETDENTS64
++	_SYS_setgroups = SYS_SETGROUPS
  )
  
  //sys	Dup2(oldfd int, newfd int) (err error)
@@ -51,11 +51,11 @@ index 6371169..2ed31f0 100644
  import "unsafe"
  
  const (
--      _SYS_dup      = SYS_DUP2
--      _SYS_getdents = SYS_GETDENTS64
-+      _SYS_dup       = SYS_DUP2
-+      _SYS_getdents  = SYS_GETDENTS64
-+      _SYS_setgroups = SYS_SETGROUPS32
+-	_SYS_dup      = SYS_DUP2
+-	_SYS_getdents = SYS_GETDENTS64
++	_SYS_dup       = SYS_DUP2
++	_SYS_getdents  = SYS_GETDENTS64
++	_SYS_setgroups = SYS_SETGROUPS32
  )
  
  func setTimespec(sec, nsec int64) Timespec {
@@ -67,11 +67,11 @@ index 0903ba3..4462139 100644
  package syscall
  
  const (
--      _SYS_dup      = SYS_DUP3
--      _SYS_getdents = SYS_GETDENTS64
-+      _SYS_dup       = SYS_DUP3
-+      _SYS_getdents  = SYS_GETDENTS64
-+      _SYS_setgroups = SYS_SETGROUPS
+-	_SYS_dup      = SYS_DUP3
+-	_SYS_getdents = SYS_GETDENTS64
++	_SYS_dup       = SYS_DUP3
++	_SYS_getdents  = SYS_GETDENTS64
++	_SYS_setgroups = SYS_SETGROUPS
  )
  
  //sys	Fchown(fd int, uid int, gid int) (err error)
@@ -80,12 +80,12 @@ index f203156..9fd7982 100644
 --- a/src/syscall/syscall_linux_mips64x.go
 +++ b/src/syscall/syscall_linux_mips64x.go
 @@ -15,7 +15,8 @@
-   // to support older kernels, we have to use getdents for mips64.
-   // Also note that struct dirent is different for these two.
-   // Lookup linux_dirent{,64} in kernel source code for details.
--  _SYS_getdents = SYS_GETDENTS
-+  _SYS_getdents  = SYS_GETDENTS
-+  _SYS_setgroups = SYS_SETGROUPS
+ 	// to support older kernels, we have to use getdents for mips64.
+ 	// Also note that struct dirent is different for these two.
+ 	// Lookup linux_dirent{,64} in kernel source code for details.
+-	_SYS_getdents = SYS_GETDENTS
++	_SYS_getdents  = SYS_GETDENTS
++	_SYS_setgroups = SYS_SETGROUPS
  )
  
  //sys	Dup2(oldfd int, newfd int) (err error)
@@ -97,11 +97,11 @@ index 006889c..307abc9 100644
  package syscall
  
  const (
--      _SYS_dup      = SYS_DUP2
--      _SYS_getdents = SYS_GETDENTS64
-+      _SYS_dup       = SYS_DUP2
-+      _SYS_getdents  = SYS_GETDENTS64
-+      _SYS_setgroups = SYS_SETGROUPS
+-	_SYS_dup      = SYS_DUP2
+-	_SYS_getdents = SYS_GETDENTS64
++	_SYS_dup       = SYS_DUP2
++	_SYS_getdents  = SYS_GETDENTS64
++	_SYS_setgroups = SYS_SETGROUPS
  )
  
  //sys	Dup2(oldfd int, newfd int) (err error)
@@ -113,11 +113,11 @@ index fea6c20..148790e 100644
  import "unsafe"
  
  const (
--      _SYS_dup      = SYS_DUP2
--      _SYS_getdents = SYS_GETDENTS64
-+      _SYS_dup       = SYS_DUP2
-+      _SYS_getdents  = SYS_GETDENTS64
-+      _SYS_setgroups = SYS_SETGROUPS
+-	_SYS_dup      = SYS_DUP2
+-	_SYS_getdents = SYS_GETDENTS64
++	_SYS_dup       = SYS_DUP2
++	_SYS_getdents  = SYS_GETDENTS64
++	_SYS_setgroups = SYS_SETGROUPS
  )
  
  //sys	Dup2(oldfd int, newfd int) (err error)

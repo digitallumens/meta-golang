@@ -1,6 +1,0 @@
-LICENSE = "BSD"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=5d4950ecb7b26d2c5e4e7b4e0dd74707"
-SRC_URI[md5sum] = "433e2158e5c28fe24b11622df393cc46"
-SRC_URI[sha1sum] = "6df2097fd11014086f6b6015cd4777f3acf37b91"
-SRC_URI[sha256sum] = "2b843f133b81b7995f26d0cb64bbdbb9d0704b90c44df45f844d28881ad442d3"
-SRC_URI += "file://golang-arm-1.7.patch"

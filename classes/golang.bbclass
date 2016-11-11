@@ -8,7 +8,7 @@ GO_PACKAGES = ""
 def install(pkgs, go_env):
     import subprocess
     go = go_env["GO"]
-    subprocess.check_call([go, 'install', '-v', '-x']+pkgs, stdout=sys.stdout, stderr=sys.stderr, env=go_env)
+    subprocess.check_call([go, 'install', '-v', '-x', '-ldflags=-linkmode=external -extldflags "'+go_env["LDFLAGS"]+'"']+pkgs, stdout=sys.stdout, stderr=sys.stderr, env=go_env)
 
 #Get the package name for a directory
 def get_package_name(d,go_env):
@@ -47,7 +47,7 @@ python do_compile() {
     target_cc_arch = d.getVar("TARGET_CC_ARCH", True)
     go_env = os.environ.copy()
     go_env["GO"] = sysroot_native+d.getVar("bindir",True)+"/go"
-    print "go: "+go_env["GO"]
+    #print "go: "+go_env["GO"]
     go_env["GOPATH"] = d.getVar("WORKDIR",True)+":"+sysroot_target+d.getVar("libdir", True)+"/go"
     go_env["GOARCH"] = d.getVar("TARGET_ARCH",True)
     if d.getVar("TARGET_ARCH",True) == "arm":
@@ -56,11 +56,12 @@ python do_compile() {
     #export GOOS="linux"
     go_env["GOOS"] = "linux"
     go_env["CC"] = d.getVar("TARGET_SYS", True)+"-gcc"
-    go_env["CGO_CFLAGS"] = "--sysroot="+sysroot_target+" "+target_cc_arch
+    go_env["CGO_CFLAGS"] = d.getVar("CFLAGS",True)+" --sysroot="+sysroot_target+" "+target_cc_arch
     go_env["CXX"] = d.getVar("TARGET_SYS", True)+"-gxx"
     go_env["CGO_CXXFLAGS"] = "--sysroot="+sysroot_target+" "+target_cc_arch
-    go_env["CGO_LDFLAGS"] = "--sysroot="+sysroot_target+" "+target_cc_arch
+    go_env["CGO_LDFLAGS"] = d.getVar("LDFLAGS", True)+"--sysroot="+sysroot_target+" "+target_cc_arch
     go_env["CGO_ENABLED"] = "1"
+    go_env["LDFLAGS"] = d.getVar("LDFLAGS",True)
 
     pkgs = d.getVar("GO_PACKAGES", True).split()
 

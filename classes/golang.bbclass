@@ -59,7 +59,7 @@ python do_compile() {
     go_env["CGO_CFLAGS"] = d.getVar("CFLAGS",True)+" --sysroot="+sysroot_target+" "+target_cc_arch
     go_env["CXX"] = d.getVar("TARGET_SYS", True)+"-gxx"
     go_env["CGO_CXXFLAGS"] = "--sysroot="+sysroot_target+" "+target_cc_arch
-    go_env["CGO_LDFLAGS"] = d.getVar("LDFLAGS", True)+"--sysroot="+sysroot_target+" "+target_cc_arch
+    go_env["CGO_LDFLAGS"] = d.getVar("LDFLAGS", True)+" --sysroot="+sysroot_target+" "+target_cc_arch
     go_env["CGO_ENABLED"] = "1"
     go_env["LDFLAGS"] = d.getVar("LDFLAGS",True)
 
